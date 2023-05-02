@@ -1,0 +1,18 @@
+@use "sass:map";
+
+$colors: (
+  "primary": #387ef5,
+  "secondary": #32db64,
+  "danger": #f53d3d,
+  "light": #f4f4f4,
+  "dark": #000,
+  "popover": #404040,
+  "unread": #808080,
+  "note": #666,
+  "background-top": #2F96A3,
+  "background-bottom": #303E8F,
+);
+
+@function color($color) {
+  @return map.get($colors, $color);
+}
