@@ -23,13 +23,41 @@ body {
   font-family: $font-stack;
 }
 
-.location {
+#wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 80vw;
+  background-color: rgba(35, 55, 75, 0.75);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.app-title {
+  font-size: 2rem;
+  margin: 0px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.input-bar {
+  width: 80vw;
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  margin-left: 5%;
+  align-items: center;
+}
+
+.today {
   height: 30vh;
   width: 80vw;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
+  margin-left: auto;
 }
 
 .temperature {
@@ -41,14 +69,19 @@ body {
   align-items: center;
 }
 
-.temperature {
+.temperature-degree {
   font-size: 1rem;
+  border: 1px solid white;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 5px;
+  padding: 5px;
 }
 
 .degree-section {
   display: flex;
   align-items: center;
-  cursor: pointer;
+
 }
 
 .degree-section span {
@@ -58,5 +91,23 @@ body {
 
 .degree-section h2 {
   font-size: 2rem;
+  margin: 0px;
+}
+
+.descriptions {
+  padding-bottom: 10px;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+
+}
+
+.short-description {
+  font-size: 1rem;
+  margin: 0px;
+}
+
+.long-description {
+  font-size: 1rem;
   margin: 0px;
 }

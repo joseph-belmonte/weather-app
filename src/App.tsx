@@ -1,82 +1,104 @@
-import React, {useState, useEffect} from 'react';
+import React, { useEffect, useState } from 'react';
 
-import mapboxgl from "mapbox-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
 import axios from "axios";
-import "mapbox-gl/dist/mapbox-gl.css";
 
+// Types
+
+// Styles
 import './styles/components/App.scss';
-import { lat, lng } from './types/types';
 
-// default access token
-mapboxgl.accessToken = 'pk.eyJ1Ijoiam1iOTMiLCJhIjoiY2w1aXZxcms3MDB2bzNpbXg4cHAxZDkwNCJ9.AL9cwKldBaCjQxxyARnCvw';
+// Components
+import SearchBar from './components/SearchBar';
+import Summary from './components/Summary';
+import { getSVG } from './helpers/getSVG';
 
-// personal access token
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoiam1iOTMiLCJhIjoiY2w1aXZxcms3MDB2bzNpbXg4cHAxZDkwNCJ9.AL9cwKldBaCjQxxyARnCvw';
 const GEOCODING_BASE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
 const NWS_BASE_URL = "https://api.weather.gov";
 
+
+const getWeatherData = async (location: string): Promise<any> => {
+  const geocodeURL = `${GEOCODING_BASE_URL}/${encodeURIComponent(location)}.json?access_token=${MAPBOX_TOKEN}`;
+  const geocodeResponse = await axios.get(geocodeURL);
+  const [lng, lat] = geocodeResponse.data.features[0].center;
+  console.log(lng, lat);
+  const WxOfficeURL = `${NWS_BASE_URL}/points/${lat},${lng}`;
+  const officeResponse = await axios.get(WxOfficeURL);
+  const forecastURL = officeResponse.data.properties.forecast;
+  const forecastResponse = await axios.get(forecastURL);
+  console.log('forecastResponse.data.properties:', forecastResponse.data.properties);
+  return forecastResponse.data.properties;
+};
+
+const defaultLocation = "New York, NY";
+const defaultWeatherData = getWeatherData('New York, NY').then(weatherData => weatherData);
+
 function App() {
-  const [location, setLocation] = useState("New York, NY");
-  const [weatherData, setWeatherData] = useState(null);
+  const [location, setLocation] = useState(defaultLocation);
+  const [weatherData, setWeatherData] = useState(defaultWeatherData);
+  const [isLoading, setIsLoading] = useState(true);
+  
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const { lat, lng } = await findCoordinates(location);
-        const { forecastURL } = await findWxOffice(lat, lng);
-        const data = await getWeatherData(forecastURL);
+        const data = await getWeatherData(location);
+        setIsLoading(false);
         setWeatherData(data);
+        getSVG(data.periods[0].icon);
       } catch (error) {
+        setIsLoading(false);
         console.error(error);
       }
     }
-
     fetchData();
   }, [location]);
 
-  const findCoordinates = async (location: string) => {
-    const url = `${GEOCODING_BASE_URL}/${encodeURIComponent(location)}.json?access_token=${MAPBOX_TOKEN}`;
-    const response = await axios.get(url);
-    const [lng, lat] = response.data.features[0].center;
-    return { lat, lng };
-  };
-
-  const findWxOffice = async (lat: lat, lng: lng) => {
-    const url = `${NWS_BASE_URL}/points/${lat},${lng}`;
-    const response = await axios.get(url);
-    const forecastURL = response.data.properties.forecast;
-    return { forecastURL };
-  };
-
-  const getWeatherData = async (forecastURL: string) => {
-    const response = await axios.get(forecastURL);
-    return response.data.properties;
-  };
-
   return (
     <div className="App">
-      <header> US Weather </header>
-      <div className='input-bar'>
-        <label htmlFor="location"> Location: </label>
-        <input type="search" name="location" id="location" placeholder="New York, NY"
-      />
-      </div>
-      <div className='location'>
-        <h1 className='location-timezone'> Timezone </h1>
-        <p> Icon </p>
-      </div>
-      <div className='temperature'>
-        <div className='degree-section'>
-        <h2 className='temperature-degree'> 34 </h2>
-        <span> F </span>
+      <div id='wrapper'>
+        <h1 className='app-title'> US Weather App </h1>
+        <SearchBar 
+          location={location}
+          setLocation={setLocation}
+        />
+        {isLoading ? (
+          <div> Loading... </div>) : (
+          <div>
+            <div className='today'>
+              <div id='today-overview'>
+                <p className='location-timezone'>
+                  <span> Updated: </span>
+                  {new Date().toTimeString()}
+                </p>
+                <p className='location-timezone'>
+                  <span> Weather for: </span>
+                  {location.toLocaleUpperCase()}
+                </p>
+              </div>
+              <div id='today-details'>
+                    <p> Icon: </p>
+                    <p> Details:</p>
+              </div>
+            </div>
+              <Summary 
+                weatherData={weatherData}
+              />  
+            <div className='five-day-forecast'>
+              <span className='five-day-heading'> Looking Ahead... </span>
+              {/* USE CSS GRID HERE */}
+              <div className='five-day-forecast'>
+                <div className='five-day-forecast-item'> </div>
+                <div className='five-day-forecast-item'> </div>
+                <div className='five-day-forecast-item'> </div>
+                <div className='five-day-forecast-item'> </div>
+                <div className='five-day-forecast-item'> </div>
+                <div className='five-day-forecast-item'> </div>
+              </div>
+            </div>
         </div>
-        <div className='temperature-description'> It's chilly! </div>
-      </div>
-      <div className='five-day-forecast'>
-        <h2 className='five-day-heading'> Looking Ahead... </h2>
-        {/* USE CSS GRID HERE */}
-        <div className='five-day-forecast'>  
-        </div>
+        )}
       </div>
     </div>
   )
